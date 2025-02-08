@@ -37,40 +37,40 @@ export default {
     }
 
     try {
-      // 获取所有可用的API Key
       const apiKeys = (env.HF_API_KEYS || "").split("\n").filter(k => k.trim());
       if (apiKeys.length === 0) {
         throw new Error("No API keys configured");
       }
 
-      // 克隆原始请求数据
       const requestData = await request.json();
       const headers = Object.fromEntries(request.headers);
-      delete headers.authorization; // 移除客户端可能自带的授权头
+      delete headers.authorization;
 
-      // 尝试各个API Key直到成功
       for (const apiKey of apiKeys) {
         try {
           const hfResponse = await fetchToHF(apiKey, headers, requestData);
           
-          // 如果响应错误，抛出以尝试下一个key
           if (hfResponse.status >= 400) {
             const error = await hfResponse.json().catch(() => ({}));
-            if (error.error) throw new Error(error.error);
+            // 改进错误信息提取逻辑
+            if (error.error) {
+              let errorMsg = error.error;
+              if (typeof errorMsg !== 'string') {
+                errorMsg = errorMsg.message || JSON.stringify(errorMsg);
+              }
+              throw new Error(errorMsg);
+            }
             throw new Error(`HTTP Error ${hfResponse.status}`);
           }
 
-          // 处理流式响应
           if (requestData.stream) {
             return streamResponse(hfResponse);
           }
 
-          // 处理普通响应
           return jsonResponse(await hfResponse.json());
           
         } catch (error) {
           console.log(`Key failed: ${error.message}`);
-          // 最后一个key也失败时抛出错误
           if (apiKey === apiKeys[apiKeys.length - 1]) {
             throw error;
           }
@@ -79,7 +79,7 @@ export default {
     } catch (error) {
       return new Response(JSON.stringify({
         error: {
-          message: `Proxy Error: ${error.message}`,
+          message: `Proxy Error: ${error.message}`, // 确保此处显示正确错误信息
           type: "invalid_request_error"
         }
       }), { 
@@ -108,16 +108,22 @@ function streamResponse(response) {
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
   const encoder = new TextEncoder();
+  const decoder = new TextDecoder(); // 初始化TextDecoder
 
   (async () => {
     const reader = response.body.getReader();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value).replace(/^data: /, 'data: ');
-      writer.write(encoder.encode(chunk));
+    try { // 添加try-catch捕获异步处理中的错误
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value).replace(/^data: /, 'data: ');
+        writer.write(encoder.encode(chunk));
+      }
+      writer.close();
+    } catch (error) {
+      console.error('Stream error:', error);
+      writer.abort(error);
     }
-    writer.close();
   })();
 
   return new Response(readable, {
