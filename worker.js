@@ -19,7 +19,7 @@ export default {
         object: "list",
         data: [
           {
-            id: "llama/llama-4-70b",
+            id: "deepseek-ai/DeepSeek-R1",
             object: "model",
             created: 1686935002,
             owned_by: "openai"
@@ -44,11 +44,13 @@ export default {
 
       const requestData = await request.json();
       const headers = Object.fromEntries(request.headers);
+      requestData.model = "deepseek-ai/DeepSeek-R1"; 
       delete headers.authorization;
+      delete headers.host;
 
       for (const apiKey of apiKeys) {
         try {
-          const hfResponse = await fetchToHF(apiKey, headers, requestData);
+          const hfResponse = await fetchToHF(apiKey, requestData);
           
           if (hfResponse.status >= 400) {
             const error = await hfResponse.json().catch(() => ({}));
@@ -79,7 +81,7 @@ export default {
     } catch (error) {
       return new Response(JSON.stringify({
         error: {
-          message: `Proxy Error: ${error.message}`, // 确保此处显示正确错误信息
+          message: `Starrina Proxy Error`, // 确保此处显示正确错误信息
           type: "invalid_request_error"
         }
       }), { 
@@ -91,11 +93,10 @@ export default {
 };
 
 // 转发到HuggingFace API
-async function fetchToHF(apiKey, headers, body) {
+async function fetchToHF(apiKey, body) {
   return fetch("https://huggingface.co/api/inference-proxy/together/v1/chat/completions", {
     method: "POST",
     headers: {
-      ...headers,
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     },
@@ -116,7 +117,7 @@ function streamResponse(response) {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value).replace(/^data: /, 'data: ');
+        const chunk = decoder.decode(value);
         writer.write(encoder.encode(chunk));
       }
       writer.close();
