@@ -1,9 +1,5 @@
 // 部署时需要设置环境变量 HF_API_KEYS，值格式为每行一个API key
-// 示例值：
-// hf_key1
-// hf_key2
-// hf_key3
-
+// 新增环境变量 WORKER_AUTH_KEY 用于接口鉴权
 export default {
   async fetch(request, env) {
     // 处理CORS预检请求
@@ -11,9 +7,28 @@ export default {
       return handleOptions(request);
     }
 
+    // 新增鉴权验证逻辑
+    const authHeader = request.headers.get('Authorization');
+    const expectedToken = `Bearer ${env.WORKER_AUTH_KEY}`;
+    
+    if (!authHeader || authHeader.trim() !== expectedToken) {
+      return new Response(JSON.stringify({
+        error: {
+          message: "Unauthorized",
+          type: "invalid_request_error"
+        }
+      }), { 
+        status: 401,
+        headers: { 
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*" 
+        }
+      });
+    }
+
     const url = new URL(request.url);
     
-    // 处理模型列表请求
+    // 处理模型列表请求（保留原有逻辑）
     if (url.pathname === "/v1/models" && request.method === "GET") {
       return jsonResponse({
         object: "list",
