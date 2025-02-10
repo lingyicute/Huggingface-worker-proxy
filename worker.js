@@ -44,7 +44,7 @@ export default {
     }
 
     // 只处理聊天补全的POST请求
-    if (request.method !== "POST" || !url.pathname.startsWith("/v1/chat/completions")) {
+    if (request.method !== "POST" || url.pathname !== "/v1/chat/completions") { 
       return new Response("Not Found", { 
         status: 404,
         headers: { "Content-Type": "application/json" }
