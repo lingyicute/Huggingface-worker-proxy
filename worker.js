@@ -34,11 +34,23 @@ export default {
         object: "list",
         data: [
           {
+            id: "deepseek-ai/DeepSeek-V3",
+            object: "model",
+            created: 1686935002,
+            owned_by: "openai"
+          },
+          {
             id: "deepseek-ai/DeepSeek-R1",
             object: "model",
             created: 1686935002,
             owned_by: "openai"
           },
+          {
+            id: "meta-llama/Llama-3.3-70B-Instruct",
+            object: "model",
+            created: 1686935002,
+            owned_by: "openai"
+          }
         ]
       });
     }
@@ -58,8 +70,7 @@ export default {
       }
 
       const requestData = await request.json();
-      const headers = Object.fromEntries(request.headers);
-      requestData.model = "deepseek-ai/DeepSeek-R1"; 
+      const headers = Object.fromEntries(request.headers); 
       delete headers.authorization;
       delete headers.host;
 
