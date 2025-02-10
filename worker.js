@@ -46,7 +46,7 @@ export default {
             owned_by: "openai"
           },
           {
-            id: "meta-llama/Llama-3.3-70B-Instruct",
+            id: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
             object: "model",
             created: 1686935002,
             owned_by: "openai"
