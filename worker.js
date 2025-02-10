@@ -46,6 +46,12 @@ export default {
             owned_by: "openai"
           },
           {
+            id: "Qwen/Qwen2.5-72B-Instruct",
+            object: "model",
+            created: 1686935002,
+            owned_by: "openai"
+          },
+          {
             id: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
             object: "model",
             created: 1686935002,
