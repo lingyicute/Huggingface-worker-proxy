@@ -34,7 +34,7 @@ export default {
         object: "list",
         data: [
           {
-            id: "deepseek-ai/DeepSeek-R1",
+            id: "deepseek-ai/DeepSeek-V3",
             object: "model",
             created: 1686935002,
             owned_by: "openai"
@@ -59,7 +59,7 @@ export default {
 
       const requestData = await request.json();
       const headers = Object.fromEntries(request.headers);
-      requestData.model = "deepseek-ai/DeepSeek-R1"; 
+      requestData.model = "deepseek-ai/DeepSeek-V3"; 
       delete headers.authorization;
       delete headers.host;
 
